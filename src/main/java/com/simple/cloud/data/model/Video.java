@@ -12,7 +12,6 @@ public class Video {
     private Long id;
     private String title;
     private String description;
-    private String filePath;
 
     public Long getId() {
         return id;
@@ -34,11 +33,4 @@ public class Video {
         this.description = description;
     }
 
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
-    }
 }
