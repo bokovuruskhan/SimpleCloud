@@ -7,12 +7,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
-import java.util.Optional;
-
-@RestController("video")
+@RestController
+@RequestMapping("/video")
 public class VideoController {
 
     @Autowired
@@ -20,17 +18,17 @@ public class VideoController {
 
     @GetMapping("/{id}")
     public Video get(@PathVariable Long id) {
-        Optional<Video> video = videoService.getVideoById(id);
-        if (video.isPresent()) {
-            return video.get();
-        } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Video with id %d not found", id));
-        }
+        return videoService.getVideoById(id);
     }
 
-    @PostMapping()
-    public Video create(@RequestBody Video video, @RequestParam("file") MultipartFile file) {
-        return videoService.saveVideo(video, file);
+    @PostMapping
+    public Video create(@RequestBody Video video) {
+        return videoService.saveVideo(video);
+    }
+
+    @PostMapping("/{id}/attach")
+    public Video attachFile(@PathVariable Long id, @RequestBody MultipartFile file) {
+        return videoService.attachFile(id, file);
     }
 
     @DeleteMapping("/{id}")
@@ -39,7 +37,7 @@ public class VideoController {
         videoService.deleteVideoById(id);
     }
 
-    @GetMapping(value = "/video/{id}/stream", produces = "video/mp4")
+    @GetMapping(value = "/{id}/stream", produces = "video/mp4")
     public Mono<Resource> getStream(@PathVariable Long id) {
         return videoService.getVideoResource(id);
     }
