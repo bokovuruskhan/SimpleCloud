@@ -7,8 +7,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.io.File;
@@ -29,23 +31,38 @@ public class VideoService {
         return Mono.fromSupplier(() -> resourceLoader.getResource(String.format(VIDEO_FILE_PATH_FORMAT, videoId)));
     }
 
-    public Video saveVideo(Video video, MultipartFile file) {
-        Video savedVideo = videoRepository.save(video);
+    public Video saveVideo(Video video) {
+        return videoRepository.save(video);
+    }
+
+    public Video attachFile(Long id, MultipartFile file) {
+        Video video = getVideoById(id);
         try {
-            file.transferTo(new File(String.format(VIDEO_FILE_PATH_FORMAT, savedVideo.getId())));
+            File savedFile = new File(String.format(VIDEO_FILE_PATH_FORMAT, video.getId()));
+            file.transferTo(savedFile);
+            video.setAttachFilePath(savedFile.getPath());
+            videoRepository.save(video);
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
-        return savedVideo;
+        return video;
     }
 
-    public Optional<Video> getVideoById(Long id) {
-        return videoRepository.findById(id);
+    public Video getVideoById(Long id) {
+        Optional<Video> video = videoRepository.findById(id);
+        if (video.isPresent()) {
+            return video.get();
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Video with id %d not found", id));
+        }
     }
 
     public void deleteVideoById(Long id) {
-        videoRepository.deleteById(id);
+        if (videoRepository.existsById(id)) {
+            videoRepository.deleteById(id);
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Video with id %d not found", id));
+        }
     }
-
 
 }
