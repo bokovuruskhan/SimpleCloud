@@ -6,14 +6,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
@@ -21,14 +19,15 @@ import java.util.Optional;
 public class VideoService {
 
     private final Logger logger = LoggerFactory.getLogger(VideoService.class);
-    protected static final String VIDEO_FILE_PATH_FORMAT = "classpath:videos/%d.mp4";
-    @Autowired
-    ResourceLoader resourceLoader;
+    protected static final String VIDEO_FILE_NAME_FORMAT = "%d.mp4";
     @Autowired
     VideoRepository videoRepository;
+    @Autowired
+    FileService fileService;
 
     public Mono<Resource> getVideoResource(Long videoId) {
-        return Mono.fromSupplier(() -> resourceLoader.getResource(String.format(VIDEO_FILE_PATH_FORMAT, videoId)));
+        Video video = getVideoById(videoId);
+        return Mono.fromSupplier(() -> fileService.loadFile(video.getAttachFilePath()));
     }
 
     public Video saveVideo(Video video) {
@@ -38,9 +37,8 @@ public class VideoService {
     public Video attachFile(Long id, MultipartFile file) {
         Video video = getVideoById(id);
         try {
-            File savedFile = new File(String.format(VIDEO_FILE_PATH_FORMAT, video.getId()));
-            file.transferTo(savedFile);
-            video.setAttachFilePath(savedFile.getPath());
+            String path = fileService.saveFile(file.getBytes(), String.format(VIDEO_FILE_NAME_FORMAT, video.getId()));
+            video.setAttachFilePath(path);
             videoRepository.save(video);
         } catch (IOException e) {
             logger.error(e.getMessage());
