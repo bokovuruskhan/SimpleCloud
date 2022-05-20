@@ -46,6 +46,10 @@ public class VideoService {
         return video;
     }
 
+    public Iterable<Video> getAllVideo() {
+        return videoRepository.findAll();
+    }
+
     public Video getVideoById(Long id) {
         Optional<Video> video = videoRepository.findById(id);
         if (video.isPresent()) {

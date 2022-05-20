@@ -16,13 +16,18 @@ public class VideoController {
     @Autowired
     VideoService videoService;
 
+    @GetMapping
+    public Iterable<Video> all() {
+        return videoService.getAllVideo();
+    }
+
     @GetMapping("/{id}")
     public Video get(@PathVariable Long id) {
         return videoService.getVideoById(id);
     }
 
     @PostMapping
-    public Video create(@RequestParam("video") Video video) {
+    public Video add(@RequestBody Video video) {
         return videoService.saveVideo(video);
     }
 
