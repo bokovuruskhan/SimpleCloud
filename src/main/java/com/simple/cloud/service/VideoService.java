@@ -21,9 +21,9 @@ public class VideoService {
     private final Logger logger = LoggerFactory.getLogger(VideoService.class);
     protected static final String VIDEO_FILE_NAME_FORMAT = "%d.mp4";
     @Autowired
-    VideoRepository videoRepository;
+    private VideoRepository videoRepository;
     @Autowired
-    FileService fileService;
+    private FileService fileService;
 
     public Mono<Resource> getVideoResource(Long videoId) {
         Video video = getVideoById(videoId);
